@@ -8,10 +8,43 @@ import { db } from './db.js'
 import { createRequestSchema, loginSchema, registerSchema, updateRequestSchema } from './schemas.js'
 import { requireAuth, signToken, type AuthRequest } from './auth.js'
 
+const isVercel = Boolean(
+  process.env.VERCEL ||
+  process.env.VERCEL_ENV ||
+  process.env.NOW_REGION ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME
+)
+const isProduction = isVercel || process.env.NODE_ENV === 'production'
+const configuredOrigin = process.env.CLIENT_ORIGIN ?? 'http://localhost:5173'
+const localOrigins = ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000']
+
 export const app = express()
 app.disable('x-powered-by')
 app.use(helmet())
-app.use(cors({ origin: process.env.CLIENT_ORIGIN ?? 'http://localhost:5173' }))
+app.use(cors({
+  origin: (origin, callback) => {
+    // Permite chamadas sem header origin (como ferramentas locais, server-side e same-origin)
+    if (!origin) return callback(null, true)
+
+    // Origem configurada explicitamente
+    if (origin === configuredOrigin) return callback(null, true)
+
+    // Ambiente local no computador
+    if (localOrigins.includes(origin) || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return callback(null, true)
+    }
+
+    // Ambiente de produção na Vercel: aceita automaticamente domínios vercel.app e a URL do deploy
+    if (isProduction || isVercel || origin.endsWith('.vercel.app')) {
+      if (origin.endsWith('.vercel.app') || (process.env.VERCEL_URL && origin.includes(process.env.VERCEL_URL))) {
+        return callback(null, true)
+      }
+    }
+
+    return callback(null, true)
+  },
+  credentials: true
+}))
 app.use(express.json({ limit: '100kb' }))
 app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false }))
 
