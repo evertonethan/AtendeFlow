@@ -1,11 +1,17 @@
 # 🚀 AtendeFlow
 
 <p align="center">
-  <img src="./Painel%20de%20Design%20AtendeFlow.png" alt="Painel de Design AtendeFlow" width="100%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);" />
+  <a href="#-visão-geral">
+    <img src="./docs/assets/logo.png" alt="Logotipo Oficial AtendeFlow" width="360" />
+  </a>
 </p>
 
 <p align="center">
   <strong>Plataforma moderna, eficiente e acessível para gestão completa de solicitações e atendimento.</strong>
+</p>
+
+<p align="center">
+  <img src="./Painel%20de%20Design%20AtendeFlow.png" alt="Painel de Design AtendeFlow" width="100%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);" />
 </p>
 
 <p align="center">
@@ -56,7 +62,11 @@ O **AtendeFlow** é uma solução completa para centralização, triagem, acompa
 
 ## 🎨 Design System Oficial
 
-O Design System está centralizado em tokens CSS reutilizáveis (`client/src/assets/styles/tokens.css`) e normalização global (`client/src/assets/styles/global.css`):
+O Design System está centralizado em tokens CSS reutilizáveis (`client/src/assets/styles/tokens.css`) e normalização global (`client/src/assets/styles/global.css`), garantindo fidelidade estrita ao guia de estilo:
+
+<p align="center">
+  <img src="./docs/assets/design-tokens-specs.png" alt="Especificações de Cores, Tipografia, Ícones e Componentes do Design System" width="340" style="border-radius: 10px; border: 1px solid #E2E8F0; box-shadow: 0 4px 16px rgba(24, 50, 74, 0.08);" />
+</p>
 
 ### 1. Paleta de Cores
 | Nome do Token | Valor Hex | Finalidade / Aplicação |
@@ -94,6 +104,15 @@ O Design System está centralizado em tokens CSS reutilizáveis (`client/src/ass
 O sistema mantém estritamente **3 páginas principais** carregadas sob demanda (*lazy-loading*), protegidas por guardas de rota (*navigation guards*):
 
 ### 1. Dashboard (`/`)
+
+<p align="center">
+  <img src="./docs/assets/tela-dashboard.png" alt="Mockup da Tela de Dashboard - AtendeFlow" width="100%" style="border-radius: 10px; border: 1px solid #E2E8F0; box-shadow: 0 4px 16px rgba(24, 50, 74, 0.08);" />
+</p>
+
+<p align="center">
+  <img src="./docs/assets/mockup-dashboard-search.png" alt="Dashboard com Busca Global Instantânea no MacBook Air" width="90%" style="border-radius: 10px;" />
+</p>
+
 - **Indicadores Executivos (`StatCard`):**
   - **Total de solicitações:** contagem real com badge de evolução (`+12%`).
   - **Em andamento:** volume em tratamento com badge (`+5%`).
@@ -110,6 +129,15 @@ O sistema mantém estritamente **3 páginas principais** carregadas sob demanda 
 - **Filtro de Período:** Dropdown para alternar entre 7, 15, 30 e 90 dias.
 
 ### 2. Solicitações (`/solicitacoes`)
+
+<p align="center">
+  <img src="./docs/assets/tela-solicitacoes.png" alt="Mockup da Tela de Solicitações - AtendeFlow" width="100%" style="border-radius: 10px; border: 1px solid #E2E8F0; box-shadow: 0 4px 16px rgba(24, 50, 74, 0.08);" />
+</p>
+
+<p align="center">
+  <img src="./docs/assets/mockup-solicitacoes-tabela.png" alt="Tabela de Solicitações com Dados Ativos no MacBook Air" width="90%" style="border-radius: 10px;" />
+</p>
+
 - **Busca e Filtros Cruzados:**
   - Campo de busca textual por título, descrição ou protocolo.
   - Filtro por Status (*Todas*, *Aberta*, *Em andamento*, *Concluída*).
@@ -123,7 +151,16 @@ O sistema mantém estritamente **3 páginas principais** carregadas sob demanda 
   - Botão **"+ Nova solicitação"** abrindo modal com validação inline.
   - Menu de ações com edição de dados, alteração rápida de status em um clique e exclusão com diálogo seguro.
 
+<p align="center">
+  <img src="./docs/assets/mockup-nova-solicitacao.png" alt="Modal de Registro de Nova Solicitação" width="80%" style="border-radius: 10px;" />
+</p>
+
 ### 3. Acesso (`/login` e `/acesso`)
+
+<p align="center">
+  <img src="./docs/assets/tela-acesso.png" alt="Mockup da Tela de Acesso (Login e Cadastro) - AtendeFlow" width="75%" style="border-radius: 10px; border: 1px solid #E2E8F0; box-shadow: 0 4px 16px rgba(24, 50, 74, 0.08);" />
+</p>
+
 - **Split-Card Institucional:**
   - **Lado Esquerdo (Azul Profundo #18324A):** Apresentação da marca, logotipo oficial e lista de benefícios com checkmarks circulares (*Atendimento mais organizado*, *Acompanhamento em tempo real*, *Equipe mais produtiva*, *Tudo em um só lugar*).
   - **Lado Direito (Superfície #FFFFFF):** Abas integradas **"Entrar"** e **"Cadastrar"** com indicador animado verde-água.
@@ -133,6 +170,16 @@ O sistema mantém estritamente **3 páginas principais** carregadas sob demanda 
   - Campo de nome completo no cadastro.
   - Checkbox *"Lembrar de mim"* e link *"Esqueceu a senha?"*.
   - Botão primário com spinner de carregamento e botão social *"Entrar com Google"*.
+
+### 4. Layout Responsivo Multiplataforma
+
+<p align="center">
+  <img src="./docs/assets/layout-responsivo.png" alt="Layout Responsivo AtendeFlow - Desktop, Tablet e Mobile" width="60%" style="border-radius: 10px; border: 1px solid #E2E8F0; box-shadow: 0 4px 16px rgba(24, 50, 74, 0.08);" />
+</p>
+
+- **Desktop (Monitores & Notebooks):** Experiência com barra lateral fixa expansível, cabeçalho rico com busca global integrada, tabelas completas com ordenação e dashboard analítico.
+- **Tablet (iPads & Tablets Android):** Menu retrátil inteligente acionado por hambúrguer, tabelas com scroll horizontal fluido e grids que se reorganizam automaticamente para 2 colunas.
+- **Mobile (Smartphones iOS & Android):** Sidebar em gaveta *off-canvas* com backdrop suave, formulários adaptados em coluna única e toques com alvos mínimos acessíveis (44px+)..
 
 ---
 
@@ -149,6 +196,31 @@ Em vez de criar páginas desnecessárias, os recursos complementares foram arqui
 | **Configurações do Sistema** | [SettingsModal.vue](file:///f:/PROJETOS-2026/AtendeFlow/client/src/components/SettingsModal.vue) | Configuração de categoria e prioridade padrão para novas demandas, toggles de notificações e diagnóstico do banco de dados SQLite com opção de limpeza de cache local. |
 | **Diálogo de Confirmação** | [ConfirmDialog.vue](file:///f:/PROJETOS-2026/AtendeFlow/client/src/components/ConfirmDialog.vue) | Modal com backdrop blur e captura de teclado (`Escape`) para proteger operações irreversíveis (como exclusão de solicitações e usuários). |
 | **Sistema de Toasts** | [ToastNotification.vue](file:///f:/PROJETOS-2026/AtendeFlow/client/src/components/ToastNotification.vue) | Alertas flutuantes automáticos de sucesso, erro, atenção e informação disparados pelas stores. |
+
+### Galeria dos Modais & Recursos em Execução
+
+<table width="100%">
+  <tr>
+    <td width="50%" align="center">
+      <strong>👥 Gestão de Usuários e Equipe</strong><br/>
+      <img src="./docs/assets/mockup-usuarios.png" alt="Modal de Gestão de Usuários" width="100%" style="border-radius: 8px; border: 1px solid #E2E8F0;" />
+    </td>
+    <td width="50%" align="center">
+      <strong>📊 Relatórios, Métricas & Exportação CSV/JSON</strong><br/>
+      <img src="./docs/assets/mockup-relatorios.png" alt="Modal de Relatórios e Indicadores" width="100%" style="border-radius: 8px; border: 1px solid #E2E8F0;" />
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <strong>⚙️ Configurações & Preferências do Sistema</strong><br/>
+      <img src="./docs/assets/mockup-configuracoes.png" alt="Modal de Configurações" width="100%" style="border-radius: 8px; border: 1px solid #E2E8F0;" />
+    </td>
+    <td width="50%" align="center">
+      <strong>👤 Perfil do Usuário & Alteração de Senha</strong><br/>
+      <img src="./docs/assets/mockup-perfil.png" alt="Modal de Meu Perfil" width="100%" style="border-radius: 8px; border: 1px solid #E2E8F0;" />
+    </td>
+  </tr>
+</table>
 
 ---
 
