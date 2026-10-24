@@ -20,7 +20,11 @@ const localOrigins = ['http://localhost:5173', 'http://localhost:3000', 'http://
 
 export const app = express()
 app.disable('x-powered-by')
-app.use(helmet())
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}))
+
 app.use(cors({
   origin: (origin, callback) => {
     // Permite chamadas sem header origin (como ferramentas locais, server-side e same-origin)
@@ -45,12 +49,16 @@ app.use(cors({
   },
   credentials: true
 }))
+
 app.use(express.json({ limit: '100kb' }))
-app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false }))
 
-app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'atendeflow-api' }))
+const apiRouter = express.Router()
 
-app.post('/api/auth/register', (req, res) => {
+apiRouter.use('/auth', rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false }))
+
+apiRouter.get('/health', (_req, res) => res.json({ status: 'ok', service: 'atendeflow-api' }))
+
+apiRouter.post('/auth/register', (req, res) => {
   const parsed = registerSchema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ error: 'Dados inválidos.', details: parsed.error.flatten().fieldErrors })
   const { name, email, password } = parsed.data
@@ -63,7 +71,7 @@ app.post('/api/auth/register', (req, res) => {
   return res.status(201).json({ token: signToken(id), user: { id, name, email } })
 })
 
-app.post('/api/auth/login', (req, res) => {
+apiRouter.post('/auth/login', (req, res) => {
   const parsed = loginSchema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ error: 'Informe e-mail e senha válidos.' })
   const user = db.prepare('SELECT id, name, email, password_hash FROM users WHERE email = ?').get(parsed.data.email) as
@@ -74,14 +82,14 @@ app.post('/api/auth/login', (req, res) => {
   return res.json({ token: signToken(user.id), user: { id: user.id, name: user.name, email: user.email } })
 })
 
-app.get('/api/auth/me', requireAuth, (req: AuthRequest, res) => {
+apiRouter.get('/auth/me', requireAuth, (req: AuthRequest, res) => {
   const user = db.prepare('SELECT id, name, email, created_at as createdAt FROM users WHERE id = ?').get(req.userId) as
     { id: string; name: string; email: string; createdAt: string } | undefined
   if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' })
   return res.json({ user })
 })
 
-app.patch('/api/auth/profile', requireAuth, (req: AuthRequest, res) => {
+apiRouter.patch('/auth/profile', requireAuth, (req: AuthRequest, res) => {
   const { name, currentPassword, newPassword } = req.body
   if (!name || typeof name !== 'string' || name.trim().length < 2) {
     return res.status(400).json({ error: 'Nome deve ter pelo menos 2 caracteres.' })
@@ -105,12 +113,12 @@ app.patch('/api/auth/profile', requireAuth, (req: AuthRequest, res) => {
   return res.json({ user: { id: user.id, name: name.trim(), email: user.email, createdAt: user.createdAt } })
 })
 
-app.get('/api/users', requireAuth, (_req, res) => {
+apiRouter.get('/users', requireAuth, (_req, res) => {
   const users = db.prepare('SELECT id, name, email, created_at as createdAt FROM users ORDER BY created_at DESC').all()
   return res.json({ data: users })
 })
 
-app.post('/api/users', requireAuth, (req, res) => {
+apiRouter.post('/users', requireAuth, (req, res) => {
   const parsed = registerSchema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ error: 'Dados inválidos.', details: parsed.error.flatten().fieldErrors })
   const { name, email, password } = parsed.data
@@ -123,7 +131,7 @@ app.post('/api/users', requireAuth, (req, res) => {
   return res.status(201).json({ user: { id, name, email } })
 })
 
-app.delete('/api/users/:id', requireAuth, (req: AuthRequest, res) => {
+apiRouter.delete('/users/:id', requireAuth, (req: AuthRequest, res) => {
   if (req.params.id === req.userId) {
     return res.status(400).json({ error: 'Você não pode excluir sua própria conta aqui.' })
   }
@@ -132,7 +140,7 @@ app.delete('/api/users/:id', requireAuth, (req: AuthRequest, res) => {
   return res.status(204).send()
 })
 
-app.get('/api/requests', requireAuth, (req: AuthRequest, res) => {
+apiRouter.get('/requests', requireAuth, (req: AuthRequest, res) => {
   const conditions = ['user_id = @userId']
   const params: Record<string, string> = { userId: req.userId! }
   if (typeof req.query.q === 'string' && req.query.q.trim()) {
@@ -150,7 +158,7 @@ app.get('/api/requests', requireAuth, (req: AuthRequest, res) => {
   return res.json({ data: rows })
 })
 
-app.post('/api/requests', requireAuth, (req: AuthRequest, res) => {
+apiRouter.post('/requests', requireAuth, (req: AuthRequest, res) => {
   const parsed = createRequestSchema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ error: 'Dados inválidos.', details: parsed.error.flatten().fieldErrors })
   const id = randomUUID()
@@ -161,7 +169,7 @@ app.post('/api/requests', requireAuth, (req: AuthRequest, res) => {
   return res.status(201).json({ data: item })
 })
 
-app.patch('/api/requests/:id', requireAuth, (req: AuthRequest, res) => {
+apiRouter.patch('/requests/:id', requireAuth, (req: AuthRequest, res) => {
   const parsed = updateRequestSchema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ error: 'Dados inválidos.', details: parsed.error.flatten() })
   const current = db.prepare('SELECT id FROM requests WHERE id = ? AND user_id = ?').get(req.params.id, req.userId)
@@ -178,11 +186,15 @@ app.patch('/api/requests/:id', requireAuth, (req: AuthRequest, res) => {
   return res.json({ data })
 })
 
-app.delete('/api/requests/:id', requireAuth, (req: AuthRequest, res) => {
+apiRouter.delete('/requests/:id', requireAuth, (req: AuthRequest, res) => {
   const result = db.prepare('DELETE FROM requests WHERE id = ? AND user_id = ?').run(req.params.id, req.userId)
   if (!result.changes) return res.status(404).json({ error: 'Solicitação não encontrada.' })
   return res.status(204).send()
 })
+
+// Suporta tanto requisições enviadas com prefixo /api quanto sem o prefixo (conforme reescrita da Vercel)
+app.use('/api', apiRouter)
+app.use('/', apiRouter)
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err)
