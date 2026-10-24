@@ -1,0 +1,122 @@
+@import './tokens.css';
+
+/* Reset e Box Sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-family-base);
+  font-size: 16px;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  min-width: 320px;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-body);
+}
+
+/* Tipografia Base */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: var(--font-size-title-1);
+  font-weight: var(--font-weight-title-1);
+  line-height: var(--line-height-title-1);
+}
+
+h2 {
+  font-size: var(--font-size-title-2);
+  font-weight: var(--font-weight-title-2);
+  line-height: var(--line-height-title-2);
+}
+
+h3 {
+  font-size: var(--font-size-title-3);
+  font-weight: var(--font-weight-title-3);
+  line-height: var(--line-height-title-3);
+}
+
+p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-sm);
+}
+
+small {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+/* Acessibilidade de Foco */
+:focus-visible {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 2px;
+}
+
+/* Controles de Formulário e Botões */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Scrollbars discretas */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Utilitários Comuns */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
