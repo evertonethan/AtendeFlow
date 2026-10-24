@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   Plus,
   Search,
@@ -24,9 +25,10 @@ import EmptyState from '../components/EmptyState.vue'
 const store = useRequestsStore()
 const auth = useAuthStore()
 const toast = useToastStore()
+const route = useRoute()
 
 // Filtros
-const search = ref('')
+const search = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const statusFilter = ref<string>('Todos os status')
 const priorityFilter = ref<string>('Todas as prioridades')
 const categoryFilter = ref<string>('Todas as categorias')
@@ -100,7 +102,17 @@ function fetchFiltered() {
 }
 
 onMounted(() => {
+  if (route.query.q) {
+    search.value = String(route.query.q)
+  }
   fetchFiltered()
+})
+
+watch(() => route.query.q, (newQ) => {
+  if (typeof newQ === 'string' && newQ !== search.value) {
+    search.value = newQ
+    fetchFiltered()
+  }
 })
 
 watch([search, statusFilter, priorityFilter], () => {

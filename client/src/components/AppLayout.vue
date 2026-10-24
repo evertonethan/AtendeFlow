@@ -1,38 +1,37 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { useUiStore } from '../stores/ui'
 import AppSidebar from './AppSidebar.vue'
 import AppHeader from './AppHeader.vue'
+import UserProfileModal from './UserProfileModal.vue'
+import UsersManagementModal from './UsersManagementModal.vue'
+import ReportsModal from './ReportsModal.vue'
+import SettingsModal from './SettingsModal.vue'
 
-const isSidebarOpen = ref(false)
-
-const emit = defineEmits<{
-  (e: 'search', query: string): void
-}>()
-
-function onSearch(query: string) {
-  emit('search', query)
-}
+const ui = useUiStore()
 </script>
 
 <template>
   <div class="app-layout">
     <!-- Sidebar -->
     <AppSidebar
-      :open="isSidebarOpen"
-      @close="isSidebarOpen = false"
+      :open="ui.isSidebarOpen"
+      @close="ui.closeSidebar"
     />
 
     <!-- Área principal de conteúdo -->
     <div class="layout-main">
-      <AppHeader
-        @toggle-sidebar="isSidebarOpen = !isSidebarOpen"
-        @search="onSearch"
-      />
+      <AppHeader />
 
       <main class="layout-content">
         <slot />
       </main>
     </div>
+
+    <!-- Modais Globais do Sistema -->
+    <UserProfileModal />
+    <UsersManagementModal />
+    <ReportsModal />
+    <SettingsModal />
   </div>
 </template>
 

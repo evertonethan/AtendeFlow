@@ -6,6 +6,7 @@ import StatusBadge from '../src/components/StatusBadge.vue'
 import StatCard from '../src/components/StatCard.vue'
 import BaseInput from '../src/components/BaseInput.vue'
 import DataTable from '../src/components/DataTable.vue'
+import ConfirmDialog from '../src/components/ConfirmDialog.vue'
 import type { RequestItem } from '../src/types'
 
 const item: RequestItem = {
@@ -113,5 +114,20 @@ describe('DataTable', () => {
     expect(wrapper.text()).toContain('Solicitação 1')
     expect(wrapper.text()).toContain('Solicitação 2')
     expect(wrapper.text()).toContain('Mostrando 1 a 2 de 2 resultados')
+  })
+})
+
+describe('ConfirmDialog', () => {
+  it('renders confirmation dialog when modelValue is true', () => {
+    mount(ConfirmDialog, {
+      props: {
+        modelValue: true,
+        title: 'Excluir item',
+        message: 'Tem certeza?',
+      },
+      attachTo: document.body,
+    })
+    expect(document.body.textContent).toContain('Excluir item')
+    expect(document.body.textContent).toContain('Tem certeza?')
   })
 })

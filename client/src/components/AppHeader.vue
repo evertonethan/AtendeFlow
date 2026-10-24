@@ -8,20 +8,26 @@ import {
   ChevronDown,
   LogOut,
   User as UserIcon,
+  Sliders,
+  Users,
+  FileText,
+  ArrowRight,
+  X,
 } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/auth'
+import { useRequestsStore } from '../stores/requests'
 import { useToastStore } from '../stores/toast'
-
-const emit = defineEmits<{
-  (e: 'toggle-sidebar'): void
-  (e: 'search', query: string): void
-}>()
+import { useUiStore } from '../stores/ui'
+import StatusBadge from './StatusBadge.vue'
 
 const auth = useAuthStore()
+const requestsStore = useRequestsStore()
 const toast = useToastStore()
+const ui = useUiStore()
 const router = useRouter()
 
 const isMenuOpen = ref(false)
+const isSearchFocused = ref(false)
 const searchQuery = ref('')
 
 const displayName = computed(() => {
@@ -37,13 +43,41 @@ const initials = computed(() => {
   return displayName.value.slice(0, 2).toUpperCase()
 })
 
-function handleSearch(e: Event) {
-  const value = (e.target as HTMLInputElement).value
-  emit('search', value)
+// Resultados de busca rápida
+const searchResults = computed(() => {
+  const q = searchQuery.value.toLowerCase().trim()
+  if (!q || q.length < 2) return []
+
+  return requestsStore.items
+    .filter((item) =>
+      item.title.toLowerCase().includes(q) ||
+      item.description.toLowerCase().includes(q) ||
+      item.category.toLowerCase().includes(q) ||
+      item.id.toLowerCase().includes(q)
+    )
+    .slice(0, 5)
+})
+
+function submitSearch() {
+  if (searchQuery.value.trim()) {
+    isSearchFocused.value = false
+    router.push({ path: '/solicitacoes', query: { q: searchQuery.value.trim() } })
+  }
+}
+
+function selectResult(id: string) {
+  isSearchFocused.value = false
+  searchQuery.value = ''
+  router.push({ path: '/solicitacoes', query: { q: id.slice(0, 8) } })
+}
+
+function clearSearch() {
+  searchQuery.value = ''
+  isSearchFocused.value = false
 }
 
 function handleNotificationClick() {
-  toast.info('Notificações', 'Você não possui notificações pendentes.')
+  toast.info('Notificações', 'Você está em dia! Nenhuma notificação urgente pendente.')
 }
 
 function logout() {
@@ -52,15 +86,18 @@ function logout() {
   router.push('/login')
 }
 
-function closeDropdown(e: MouseEvent) {
+function closeDropdowns(e: MouseEvent) {
   const target = e.target as HTMLElement
   if (!target.closest('.user-profile-menu')) {
     isMenuOpen.value = false
   }
+  if (!target.closest('.header-search-container')) {
+    isSearchFocused.value = false
+  }
 }
 
-onMounted(() => window.addEventListener('click', closeDropdown))
-onUnmounted(() => window.removeEventListener('click', closeDropdown))
+onMounted(() => window.addEventListener('click', closeDropdowns))
+onUnmounted(() => window.removeEventListener('click', closeDropdowns))
 </script>
 
 <template>
@@ -71,22 +108,75 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
         type="button"
         class="header-icon-btn mobile-menu-btn"
         aria-label="Abrir menu lateral"
-        @click="emit('toggle-sidebar')"
+        @click="ui.toggleSidebar()"
       >
         <Menu :size="20" />
       </button>
 
-      <!-- Barra de busca global -->
-      <div class="header-search">
-        <Search :size="16" class="search-icon" />
-        <input
-          v-model="searchQuery"
-          type="search"
-          placeholder="Buscar solicitações, usuários..."
-          aria-label="Buscar no sistema"
-          class="search-input"
-          @input="handleSearch"
-        />
+      <!-- Barra de busca global com autocomplete -->
+      <div class="header-search-container">
+        <div class="header-search">
+          <Search :size="16" class="search-icon" />
+          <input
+            v-model="searchQuery"
+            type="search"
+            placeholder="Buscar solicitações, usuários..."
+            aria-label="Buscar no sistema"
+            class="search-input"
+            @focus="isSearchFocused = true"
+            @keydown.enter.prevent="submitSearch"
+          />
+          <button
+            v-if="searchQuery"
+            type="button"
+            class="clear-search-btn"
+            aria-label="Limpar busca"
+            @click="clearSearch"
+          >
+            <X :size="14" />
+          </button>
+        </div>
+
+        <!-- Popover de Resultados Rápidos -->
+        <div
+          v-if="isSearchFocused && searchQuery.length >= 2"
+          class="search-results-popover"
+        >
+          <div class="search-results-header">
+            <span>Resultados para "{{ searchQuery }}"</span>
+            <span class="results-count">{{ searchResults.length }} encontrada(s)</span>
+          </div>
+
+          <div v-if="searchResults.length" class="results-list">
+            <button
+              v-for="item in searchResults"
+              :key="item.id"
+              type="button"
+              class="result-item"
+              @click="selectResult(item.id)"
+            >
+              <div class="result-icon">
+                <FileText :size="16" />
+              </div>
+              <div class="result-info">
+                <span class="result-title">{{ item.title }}</span>
+                <span class="result-meta">SIL-2024-{{ item.id.slice(0, 4).toUpperCase() }} • {{ item.category }}</span>
+              </div>
+              <StatusBadge :status="item.status" />
+            </button>
+          </div>
+
+          <div v-else class="results-empty">
+            <p>Nenhuma solicitação encontrada.</p>
+          </div>
+
+          <div class="search-results-footer">
+            <button type="button" class="view-all-results-btn" @click="submitSearch">
+              <span>Ver todas em Solicitações</span>
+              <ArrowRight :size="13" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -134,11 +224,39 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
 
             <div class="dropdown-divider" />
 
-            <button type="button" class="dropdown-item" @click="toast.info('Perfil', 'Em breve!')">
+            <!-- Meu Perfil 100% Funcional -->
+            <button
+              type="button"
+              class="dropdown-item"
+              @click="isMenuOpen = false; ui.openProfile()"
+            >
               <UserIcon :size="16" />
               <span>Meu perfil</span>
             </button>
 
+            <!-- Gestão de Usuários -->
+            <button
+              type="button"
+              class="dropdown-item"
+              @click="isMenuOpen = false; ui.openUsers()"
+            >
+              <Users :size="16" />
+              <span>Usuários e equipe</span>
+            </button>
+
+            <!-- Configurações -->
+            <button
+              type="button"
+              class="dropdown-item"
+              @click="isMenuOpen = false; ui.openSettings()"
+            >
+              <Sliders :size="16" />
+              <span>Configurações</span>
+            </button>
+
+            <div class="dropdown-divider" />
+
+            <!-- Sair -->
             <button type="button" class="dropdown-item text-danger" @click="logout">
               <LogOut :size="16" />
               <span>Encerrar sessão</span>
@@ -169,11 +287,16 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
   align-items: center;
   gap: var(--space-3);
   flex: 1;
-  max-width: 480px;
+  max-width: 520px;
 }
 
 .mobile-menu-btn {
   display: none;
+}
+
+.header-search-container {
+  position: relative;
+  width: 100%;
 }
 
 .header-search {
@@ -193,7 +316,7 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
 .search-input {
   width: 100%;
   height: 38px;
-  padding: 0 var(--space-3) 0 38px;
+  padding: 0 32px 0 38px;
   font-size: var(--font-size-xs);
   background-color: var(--color-bg);
   border: 1px solid var(--color-border);
@@ -211,6 +334,137 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
 
 .search-input::placeholder {
   color: var(--color-text-muted);
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 8px;
+  color: var(--color-text-muted);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.clear-search-btn:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-hover);
+}
+
+/* Popover de Resultados */
+.search-results-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.results-count {
+  font-weight: 600;
+}
+
+.results-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border-bottom: 1px solid #F1F5F9;
+  transition: background-color var(--transition-fast);
+}
+
+.result-item:hover {
+  background-color: #F8FAFC;
+}
+
+.result-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background-color: #EFF6FF;
+  color: #2563EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.result-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.result-title {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-meta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.results-empty {
+  padding: var(--space-4);
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.search-results-footer {
+  padding: 6px var(--space-3);
+  background-color: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+}
+
+.view-all-results-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-info);
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+}
+.view-all-results-btn:hover {
+  text-decoration: underline;
 }
 
 .header-right {
@@ -404,8 +658,8 @@ onUnmounted(() => window.removeEventListener('click', closeDropdown))
 }
 
 @media (max-width: 600px) {
-  .header-search {
-    display: none;
+  .header-left {
+    max-width: 100%;
   }
   .user-greeting {
     display: none;
